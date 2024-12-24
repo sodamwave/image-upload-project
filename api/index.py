@@ -1,10 +1,20 @@
 from flask import Flask, request, send_from_directory, jsonify
+from flask_cors import CORS
 import cloudinary
 import cloudinary.uploader
 import os
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
+CORS(app)
+
+# Cloudinary 설정 확인
+if not all([
+    os.environ.get('CLOUDINARY_CLOUD_NAME'),
+    os.environ.get('CLOUDINARY_API_KEY'),
+    os.environ.get('CLOUDINARY_API_SECRET')
+]):
+    raise ValueError("Cloudinary 환경 변수가 설정되지 않았습니다.")
 
 # Cloudinary 설정
 cloudinary.config(
