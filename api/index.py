@@ -13,6 +13,7 @@ cloudinary.config(
     api_secret = os.environ.get('CLOUDINARY_API_SECRET')
 )
 
+
 @app.route('/')
 def index():
     return send_from_directory('public', 'index.html')
