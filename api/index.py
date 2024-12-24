@@ -1,4 +1,4 @@
-from flask import Flask, request, send_from_directory
+from flask import Flask, request, send_from_directory, jsonify
 import cloudinary
 import cloudinary.uploader
 import os
@@ -21,24 +21,24 @@ def index():
 @app.route('/api/upload', methods=['POST'])
 def upload():
     if 'file' not in request.files:
-        return {'error': '파일이 없습니다'}, 400
+        return jsonify({'error': '파일이 없습니다'}), 400
     
     file = request.files['file']
     
     if file.filename == '':
-        return {'error': '선택된 파일이 없습니다'}, 400
+        return jsonify({'error': '선택된 파일이 없습니다'}), 400
     
     try:
         # Cloudinary에 파일 업로드
         result = cloudinary.uploader.upload(file)
         
-        return {
+        return jsonify({
             'message': '파일이 성공적으로 업로드되었습니다',
             'url': result['secure_url']
-        }, 200
+        }), 200
         
     except Exception as e:
-        return {'error': f'업로드 중 오류 발생: {str(e)}'}, 500
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 8080))) 
