@@ -3,22 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>이미지 업로드</title>
+    <title>이미지 업로드 1</title>
     <style>
+        body {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
         #preview-image {
             max-width: 300px;
             display: none;
             margin-top: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        form {
+            margin: 20px 0;
+        }
+        button {
+            margin-left: 10px;
+            padding: 8px 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
 <body>
-    <h1>이미지 업로드</h1>
+    <h1>이미지 업로드 1</h1>
     <form id="upload-form">
         <input type="file" accept="image/*" onchange="previewImage(event)">
         <button type="submit">업로드</button>
     </form>
     <img id="preview-image" src="" alt="미리보기">
+    <div id="result"></div>
 
     <script>
         function previewImage(event) {
