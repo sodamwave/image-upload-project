@@ -68,56 +68,48 @@
     <div id="result"></div>
 
     <script>
-        function previewImage(event) {
-            const file = event.target.files[0];
-            const preview = document.getElementById('preview-image');
-            const reader = new FileReader();
-
-            reader.onload = function(e) {
-                preview.src = e.target.result;
-                preview.style.display = 'block';
-            }
-
-            if (file) {
-                reader.readAsDataURL(file);
-            }
-        }
-
-        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+        document.querySelector('form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
             const formData = new FormData();
-            const fileInput = document.getElementById('file');
-            const resultDiv = document.getElementById('result');
-            
-            if (!fileInput.files[0]) {
-                resultDiv.innerHTML = '<p class="error">파일을 선택해주세요.</p>';
-                return;
-            }
-            
+            const fileInput = document.querySelector('input[type="file"]');
             formData.append('file', fileInput.files[0]);
-            resultDiv.innerHTML = '<p>업로드 중...</p>';
-
+            
             try {
                 const response = await fetch('/api/upload', {
                     method: 'POST',
                     body: formData
                 });
-                const data = await response.json();
                 
-                if (response.ok) {
-                    resultDiv.innerHTML = `
-                        <p class="success">${data.message}</p>
-                        <p>파일 URL: <a href="${data.url}" target="_blank">${data.url}</a></p>
-                    `;
-                } else {
-                    resultDiv.innerHTML = `
-                        <p class="error">업로드 실패: ${data.error}</p>
-                    `;
+                if (!response.ok) {
+                    throw new Error('업로드 실패');
                 }
+                
+                const data = await response.json();
+                alert('업로드 성공: ' + data.url);
+                
+                // 이미지 미리보기 업데이트
+                const previewImage = document.getElementById('preview-image');
+                previewImage.src = data.url;
+                previewImage.style.display = 'block';
+                
             } catch (error) {
-                resultDiv.innerHTML = `
-                    <p class="error">업로드 실패: ${error.message}</p>
-                `;
+                console.error('Error:', error);
+                alert('업로드 중 오류가 발생했습니다: ' + error.message);
+            }
+        });
+        
+        // 파일 선택 시 미리보기
+        document.querySelector('input[type="file"]').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const previewImage = document.getElementById('preview-image');
+                    previewImage.src = e.target.result;
+                    previewImage.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
             }
         });
     </script>
