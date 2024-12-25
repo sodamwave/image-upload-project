@@ -3,70 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>이미지 업로드 9</title>
+    <title>이미지 업로드 10</title>
     <style>
         body {
-            max-width: 800px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
             font-family: Arial, sans-serif;
         }
         .upload-container {
-            margin: 20px 0;
-            padding: 20px;
             border: 2px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 30px;
             border-radius: 8px;
         }
         .image-list {
-            margin-top: 30px;
+            width: 100%;
+            border-collapse: collapse;
         }
         .image-item {
             display: flex;
             align-items: center;
-            margin-bottom: 15px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background: #f9f9f9;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .image-item:hover {
+            background-color: #f8f9fa;
         }
         .thumbnail {
-            width: 100px;
-            height: 100px;
+            width: 50px;
+            height: 50px;
             object-fit: cover;
             border-radius: 4px;
             margin-right: 15px;
         }
         .image-info {
             flex: 1;
+            display: flex;
+            align-items: center;
         }
         .image-title {
-            font-weight: bold;
-            margin-bottom: 5px;
-            color: #333;
+            flex: 1;
+            margin-right: 20px;
         }
         .image-date {
+            width: 200px;
             color: #666;
-            font-size: 0.9em;
         }
-        button {
-            background-color: #007bff;
-            color: white;
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 6px 12px;
             border: none;
-            padding: 10px 20px;
             border-radius: 4px;
             cursor: pointer;
+            font-size: 14px;
         }
-        button:hover {
-            background-color: #0056b3;
+        .btn-download {
+            background-color: #28a745;
+            color: white;
+        }
+        .btn-delete {
+            background-color: #dc3545;
+            color: white;
+        }
+        .btn:hover {
+            opacity: 0.9;
         }
     </style>
 </head>
 <body>
-    <h1>이미��� 업로드 9</h1>
+    <h1>이미지 업로드 10</h1>
     <div class="upload-container">
         <form id="upload-form">
             <input type="file" accept="image/*">
-            <button type="submit">업로드</button>
+            <button type="submit" class="btn btn-primary">업로드</button>
         </form>
     </div>
     <div id="image-list" class="image-list"></div>
@@ -79,11 +93,29 @@
             const imageInfo = {
                 url: url,
                 date: now.toLocaleString('ko-KR'),
-                title: fileName || `이미지 ${imageList.length + 1}`
+                title: fileName || `이미지 ${imageList.length + 1}`,
+                id: Date.now() // 고유 ID 추가
             };
             imageList.unshift(imageInfo);
             updateImageList();
             localStorage.setItem('uploadedImages', JSON.stringify(imageList));
+        }
+
+        function deleteImage(id) {
+            if (confirm('이미지를 삭제하시겠습니까?')) {
+                imageList = imageList.filter(img => img.id !== id);
+                updateImageList();
+                localStorage.setItem('uploadedImages', JSON.stringify(imageList));
+            }
+        }
+
+        function downloadImage(url, filename) {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         }
 
         function updateImageList() {
@@ -95,6 +127,10 @@
                         <div class="image-info">
                             <div class="image-title">${image.title}</div>
                             <div class="image-date">${image.date}</div>
+                            <div class="action-buttons">
+                                <button onclick="downloadImage('${image.url}', '${image.title}')" class="btn btn-download">다운로드</button>
+                                <button onclick="deleteImage(${image.id})" class="btn btn-delete">삭제</button>
+                            </div>
                         </div>
                     </div>
                 `).join('');
@@ -134,7 +170,6 @@
                         const data = await response.json();
                         if (data.url) {
                             addImageToList(data.url, file.name);
-                            alert('업로드 성공!');
                             fileInput.value = '';
                         }
                     } catch (error) {
