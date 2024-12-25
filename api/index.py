@@ -3,7 +3,12 @@ from flask_cors import CORS
 import cloudinary
 import cloudinary.uploader
 import os
-import traceback
+import sys
+import logging
+
+# 로깅 설정
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__, static_folder='public')
 CORS(app)
@@ -22,26 +27,26 @@ def serve_index():
 @app.route('/api/upload', methods=['POST'])
 def upload():
     try:
+        logger.debug('Upload 요청 받음')
+        logger.debug(f'Files in request: {request.files}')
+        
         if 'file' not in request.files:
+            logger.error('파일이 요청에 없음')
             return jsonify({'error': '파일이 없습니다'}), 400
         
         file = request.files['file']
-        if file.filename == '':
-            return jsonify({'error': '선택된 파일이 없습니다'}), 400
+        logger.debug(f'파일 이름: {file.filename}')
         
-        # Cloudinary 업로드
         result = cloudinary.uploader.upload(file)
+        logger.debug(f'Cloudinary 응답: {result}')
+        
         return jsonify({
             'success': True,
             'url': result['secure_url']
         })
     except Exception as e:
-        print(f"Error: {str(e)}")
-        print(traceback.format_exc())
-        return jsonify({
-            'error': str(e),
-            'details': traceback.format_exc()
-        }), 500
+        logger.error(f'오류 발생: {str(e)}', exc_info=True)
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True) 
