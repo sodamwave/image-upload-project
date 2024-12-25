@@ -3,19 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>이미지 업로드 8</title>
+    <title>이미지 업로드 9</title>
     <style>
         body {
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
             font-family: Arial, sans-serif;
-        }
-        #preview-image {
-            max-width: 300px;
-            margin-top: 20px;
-            border-radius: 8px;
-            display: none;
         }
         .upload-container {
             margin: 20px 0;
@@ -68,10 +62,10 @@
     </style>
 </head>
 <body>
-    <h1>이미지 업로드 8</h1>
+    <h1>이미��� 업로드 9</h1>
     <div class="upload-container">
         <form id="upload-form">
-            <input type="file" accept="image/*" onchange="previewImage(event)">
+            <input type="file" accept="image/*">
             <button type="submit">업로드</button>
         </form>
     </div>
@@ -87,80 +81,69 @@
                 date: now.toLocaleString('ko-KR'),
                 title: fileName || `이미지 ${imageList.length + 1}`
             };
-            imageList.unshift(imageInfo); // 새 이미지를 배열 앞에 추가
+            imageList.unshift(imageInfo);
             updateImageList();
-            
-            // localStorage에 저장
             localStorage.setItem('uploadedImages', JSON.stringify(imageList));
         }
 
         function updateImageList() {
             const listElement = document.getElementById('image-list');
-            listElement.innerHTML = imageList.map(image => `
-                <div class="image-item">
-                    <img src="${image.url}" class="thumbnail" alt="${image.title}">
-                    <div class="image-info">
-                        <div class="image-title">${image.title}</div>
-                        <div class="image-date">${image.date}</div>
+            if (listElement) {
+                listElement.innerHTML = imageList.map(image => `
+                    <div class="image-item">
+                        <img src="${image.url}" class="thumbnail" alt="${image.title}">
+                        <div class="image-info">
+                            <div class="image-title">${image.title}</div>
+                            <div class="image-date">${image.date}</div>
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                `).join('');
+            }
         }
 
-        // 페이지 로드 시 저장된 이미지 목록 불러오기
-        window.onload = function() {
+        document.addEventListener('DOMContentLoaded', function() {
             const savedImages = localStorage.getItem('uploadedImages');
             if (savedImages) {
                 imageList = JSON.parse(savedImages);
                 updateImageList();
             }
-        };
 
-        document.getElementById('upload-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const fileInput = document.querySelector('input[type="file"]');
-            const file = fileInput.files[0];
-            if (!file) {
-                alert('파일을 선택해주세요.');
-                return;
-            }
+            const form = document.getElementById('upload-form');
+            if (form) {
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const fileInput = form.querySelector('input[type="file"]');
+                    const file = fileInput.files[0];
+                    
+                    if (!file) {
+                        alert('파일을 선택해주세요.');
+                        return;
+                    }
 
-            const formData = new FormData();
-            formData.append('file', file);
-            
-            try {
-                const response = await fetch('/api/upload', {
-                    method: 'POST',
-                    body: formData
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    
+                    try {
+                        const response = await fetch('/api/upload', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        if (!response.ok) throw new Error('업로드 실패');
+                        
+                        const data = await response.json();
+                        if (data.url) {
+                            addImageToList(data.url, file.name);
+                            alert('업로드 성공!');
+                            fileInput.value = '';
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert('업로드 중 오류가 발생했습니다: ' + error.message);
+                    }
                 });
-                
-                if (!response.ok) throw new Error('업로드 실패');
-                
-                const data = await response.json();
-                if (data.url) {
-                    addImageToList(data.url, file.name);
-                    alert('업로드 성공!');
-                    fileInput.value = ''; // 입력 필드 초기화
-                    document.getElementById('preview-image').style.display = 'none';
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('업로드 중 오류가 발생했습니다: ' + error.message);
             }
         });
-
-        function previewImage(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const previewImage = document.getElementById('preview-image');
-                    previewImage.src = e.target.result;
-                    previewImage.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-            }
-        }
     </script>
 </body>
 </html> 
