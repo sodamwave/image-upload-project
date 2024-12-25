@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>이미지 업로드 6</title>
+    <title>이미지 업로드 8</title>
     <style>
         body {
             max-width: 800px;
@@ -13,38 +13,27 @@
         }
         #preview-image {
             max-width: 300px;
-            display: none;
             margin-top: 20px;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: none;
         }
-        form {
+        .upload-container {
             margin: 20px 0;
-        }
-        button {
-            margin-left: 10px;
-            padding: 8px 16px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
+            padding: 20px;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
         }
         .image-list {
             margin-top: 30px;
-            border-top: 1px solid #eee;
-            padding-top: 20px;
         }
         .image-item {
             display: flex;
             align-items: center;
             margin-bottom: 15px;
-            padding: 10px;
+            padding: 15px;
             border: 1px solid #ddd;
             border-radius: 8px;
+            background: #f9f9f9;
         }
         .thumbnail {
             width: 100px;
@@ -59,34 +48,50 @@
         .image-title {
             font-weight: bold;
             margin-bottom: 5px;
+            color: #333;
         }
         .image-date {
             color: #666;
             font-size: 0.9em;
         }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 <body>
-    <h1>이미지 업로드 6</h1>
-    <form id="upload-form" enctype="multipart/form-data">
-        <input type="file" accept="image/*" onchange="previewImage(event)">
-        <button type="submit">업로드</button>
-    </form>
-    <img id="preview-image" src="" alt="미리보기">
+    <h1>이미지 업로드 8</h1>
+    <div class="upload-container">
+        <form id="upload-form">
+            <input type="file" accept="image/*" onchange="previewImage(event)">
+            <button type="submit">업로드</button>
+        </form>
+    </div>
     <div id="image-list" class="image-list"></div>
 
     <script>
-        const imageList = [];
+        let imageList = [];
 
-        function addImageToList(url) {
+        function addImageToList(url, fileName) {
             const now = new Date();
             const imageInfo = {
                 url: url,
-                date: now.toLocaleString(),
-                title: `이미지 ${imageList.length + 1}`
+                date: now.toLocaleString('ko-KR'),
+                title: fileName || `이미지 ${imageList.length + 1}`
             };
-            imageList.unshift(imageInfo);
+            imageList.unshift(imageInfo); // 새 이미지를 배열 앞에 추가
             updateImageList();
+            
+            // localStorage에 저장
+            localStorage.setItem('uploadedImages', JSON.stringify(imageList));
         }
 
         function updateImageList() {
@@ -102,11 +107,26 @@
             `).join('');
         }
 
+        // 페이지 로드 시 저장된 이미지 목록 불러오기
+        window.onload = function() {
+            const savedImages = localStorage.getItem('uploadedImages');
+            if (savedImages) {
+                imageList = JSON.parse(savedImages);
+                updateImageList();
+            }
+        };
+
         document.getElementById('upload-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const formData = new FormData();
             const fileInput = document.querySelector('input[type="file"]');
-            formData.append('file', fileInput.files[0]);
+            const file = fileInput.files[0];
+            if (!file) {
+                alert('파일을 선택해주세요.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
             
             try {
                 const response = await fetch('/api/upload', {
@@ -118,8 +138,10 @@
                 
                 const data = await response.json();
                 if (data.url) {
-                    addImageToList(data.url);
+                    addImageToList(data.url, file.name);
                     alert('업로드 성공!');
+                    fileInput.value = ''; // 입력 필드 초기화
+                    document.getElementById('preview-image').style.display = 'none';
                 }
             } catch (error) {
                 console.error('Error:', error);
