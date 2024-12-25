@@ -126,12 +126,34 @@
         }
 
         function downloadImage(url, filename) {
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            fetch(url)
+                .then(response => response.blob())
+                .then(blob => {
+                    // 파일 확장자 추출
+                    const extension = url.split('.').pop().split('?')[0];
+                    // 파일명 생성 (원본 파일명 + 확장자)
+                    const fullFilename = `${filename}.${extension}`;
+                    
+                    // Blob URL 생성
+                    const blobUrl = window.URL.createObjectURL(blob);
+                    
+                    // 다운로드 링크 생성
+                    const a = document.createElement('a');
+                    a.href = blobUrl;
+                    a.download = fullFilename;
+                    
+                    // 링크를 body에 추가하고 클릭
+                    document.body.appendChild(a);
+                    a.click();
+                    
+                    // cleanup
+                    window.URL.revokeObjectURL(blobUrl);
+                    document.body.removeChild(a);
+                })
+                .catch(error => {
+                    console.error('다운로드 중 오류 발생:', error);
+                    alert('다운로드 중 오류가 발생했습니다.');
+                });
         }
 
         function updateImageList() {
@@ -188,7 +210,7 @@
                     }
                 } catch (error) {
                     console.error('Error:', error);
-                    alert('업로드 중 오류가 발생했습니다: ' + error.message);
+                    alert('업로드 중 오류��� 발생했습니다: ' + error.message);
                 } finally {
                     isUploading = false; // 업로드 완료
                 }
