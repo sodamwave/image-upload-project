@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>이미지 업로드 3</title>
+    <title>이미지 업로드 6</title>
     <style>
         body {
             max-width: 800px;
@@ -33,18 +33,100 @@
         button:hover {
             background-color: #0056b3;
         }
+        .image-list {
+            margin-top: 30px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+        .image-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .thumbnail {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-right: 15px;
+        }
+        .image-info {
+            flex: 1;
+        }
+        .image-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .image-date {
+            color: #666;
+            font-size: 0.9em;
+        }
     </style>
 </head>
 <body>
-    <h1>이미지 업로드 3</h1>
+    <h1>이미지 업로드 6</h1>
     <form id="upload-form" enctype="multipart/form-data">
         <input type="file" accept="image/*" onchange="previewImage(event)">
         <button type="submit">업로드</button>
     </form>
     <img id="preview-image" src="" alt="미리보기">
-    <div id="result"></div>
+    <div id="image-list" class="image-list"></div>
 
     <script>
+        const imageList = [];
+
+        function addImageToList(url) {
+            const now = new Date();
+            const imageInfo = {
+                url: url,
+                date: now.toLocaleString(),
+                title: `이미지 ${imageList.length + 1}`
+            };
+            imageList.unshift(imageInfo);
+            updateImageList();
+        }
+
+        function updateImageList() {
+            const listElement = document.getElementById('image-list');
+            listElement.innerHTML = imageList.map(image => `
+                <div class="image-item">
+                    <img src="${image.url}" class="thumbnail" alt="${image.title}">
+                    <div class="image-info">
+                        <div class="image-title">${image.title}</div>
+                        <div class="image-date">${image.date}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('upload-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            const fileInput = document.querySelector('input[type="file"]');
+            formData.append('file', fileInput.files[0]);
+            
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) throw new Error('업로드 실패');
+                
+                const data = await response.json();
+                if (data.url) {
+                    addImageToList(data.url);
+                    alert('업로드 성공!');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('업로드 중 오류가 발생했습니다: ' + error.message);
+            }
+        });
+
         function previewImage(event) {
             const file = event.target.files[0];
             if (file) {
@@ -57,36 +139,6 @@
                 reader.readAsDataURL(file);
             }
         }
-
-        document.getElementById('upload-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const formData = new FormData();
-            const fileInput = document.querySelector('input[type="file"]');
-            formData.append('file', fileInput.files[0]);
-            
-            try {
-                const response = await fetch('/api/upload', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                if (!response.ok) {
-                    throw new Error('업로드 실패');
-                }
-                
-                const data = await response.json();
-                alert('업로드 성공: ' + data.url);
-                
-                const previewImage = document.getElementById('preview-image');
-                previewImage.src = data.url;
-                previewImage.style.display = 'block';
-                
-            } catch (error) {
-                console.error('Error:', error);
-                alert('업로드 중 오류가 발생했습니다: ' + error.message);
-            }
-        });
     </script>
 </body>
 </html> 
