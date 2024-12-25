@@ -17,6 +17,19 @@
             text-align: center;
             margin-bottom: 30px;
             border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .upload-container.dragover {
+            background-color: #e9ecef;
+            border-color: #007bff;
+        }
+        .upload-text {
+            color: #666;
+            margin: 10px 0;
+        }
+        input[type="file"] {
+            margin-bottom: 10px;
         }
         .image-list {
             width: 100%;
@@ -77,7 +90,10 @@
 </head>
 <body>
     <h1>이미지 업로드 10</h1>
-    <div class="upload-container">
+    <div class="upload-container" id="drop-zone">
+        <div class="upload-text">
+            이미지를 여기에 드래그하거나 파일 선택 버튼을 클릭하세요
+        </div>
         <form id="upload-form">
             <input type="file" accept="image/*">
             <button type="submit" class="btn btn-primary">업로드</button>
@@ -144,11 +160,62 @@
                 updateImageList();
             }
 
+            const dropZone = document.getElementById('drop-zone');
+            const fileInput = document.querySelector('input[type="file"]');
+
+            // 드래그 앤 드롭 이벤트 처리
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+
+            dropZone.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0 && files[0].type.startsWith('image/')) {
+                    fileInput.files = files;
+                    uploadFile(files[0]);
+                } else {
+                    alert('이미지 파일만 업로드 가능합니다.');
+                }
+            });
+
+            // 파일 업로드 함수
+            async function uploadFile(file) {
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                try {
+                    const response = await fetch('/api/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (!response.ok) throw new Error('업로드 실패');
+                    
+                    const data = await response.json();
+                    if (data.url) {
+                        addImageToList(data.url, file.name);
+                        fileInput.value = '';
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('업로드 중 오류가 발생했습니다: ' + error.message);
+                }
+            }
+
+            // 기존 form submit 이벤트 수정
             const form = document.getElementById('upload-form');
             if (form) {
                 form.addEventListener('submit', async (e) => {
                     e.preventDefault();
-                    const fileInput = form.querySelector('input[type="file"]');
                     const file = fileInput.files[0];
                     
                     if (!file) {
@@ -156,26 +223,7 @@
                         return;
                     }
 
-                    const formData = new FormData();
-                    formData.append('file', file);
-                    
-                    try {
-                        const response = await fetch('/api/upload', {
-                            method: 'POST',
-                            body: formData
-                        });
-                        
-                        if (!response.ok) throw new Error('업로드 실패');
-                        
-                        const data = await response.json();
-                        if (data.url) {
-                            addImageToList(data.url, file.name);
-                            fileInput.value = '';
-                        }
-                    } catch (error) {
-                        console.error('Error:', error);
-                        alert('업로드 중 오류가 발생했습니다: ' + error.message);
-                    }
+                    uploadFile(file);
                 });
             }
         });
