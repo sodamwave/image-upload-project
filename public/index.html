@@ -42,7 +42,7 @@
         .image-item {
             display: flex;
             align-items: center;
-            padding: 15px;
+            padding: 12px 15px;
             background-color: #f8f9fa;
             margin-bottom: 2px;
         }
@@ -72,23 +72,27 @@
             max-width: 400px;
         }
         .image-date {
-            width: 160px;
+            width: 140px;
+            white-space: nowrap;
             text-align: center;
+            color: #666;
+            font-size: 14px;
         }
         .action-buttons {
             display: flex;
-            gap: 10px;
-            width: 180px;
+            gap: 6px;
+            width: 160px;
             justify-content: flex-end;
         }
         .btn-download, .btn-delete {
-            padding: 6px 15px;
+            padding: 4px 12px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 14px;
-            width: 80px;
+            font-size: 13px;
+            width: 70px;
             text-align: center;
+            white-space: nowrap;
         }
         .btn-download {
             background-color: #0095f6;
@@ -168,7 +172,7 @@
                 .then(blob => {
                     // 파일 확자 추출
                     const extension = url.split('.').pop().split('?')[0];
-                    // ��일명 생성 (원본 파일명 + 확자)
+                    // 일명 생성 (원본 파일명 + 확자)
                     const fullFilename = `${filename}.${extension}`;
                     
                     // Blob URL 생성
