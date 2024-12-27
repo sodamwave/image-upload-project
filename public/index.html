@@ -35,11 +35,12 @@
         .image-list {
             width: 100%;
             border-collapse: collapse;
+            margin-top: 30px;
         }
         .image-item {
             display: flex;
             align-items: center;
-            padding: 10px;
+            padding: 15px;
             border-bottom: 1px solid #eee;
         }
         .image-item:hover {
@@ -56,32 +57,35 @@
             flex: 1;
             display: flex;
             align-items: center;
+            gap: 20px;
         }
         .image-title {
             flex: 1;
-            margin-right: 20px;
+            font-size: 14px;
+            color: #333;
         }
         .image-date {
-            width: 200px;
+            width: 180px;
             color: #666;
+            font-size: 14px;
         }
         .action-buttons {
             display: flex;
             gap: 10px;
         }
-        .btn {
-            padding: 6px 12px;
+        .btn-download, .btn-delete {
+            padding: 6px 15px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
             font-size: 14px;
         }
         .btn-download {
-            background-color: #28a745;
+            background-color: #0095f6;
             color: white;
         }
         .btn-delete {
-            background-color: #dc3545;
+            background-color: #ff4757;
             color: white;
         }
         .btn:hover {
@@ -167,8 +171,8 @@
                             <div class="image-title">${image.title}</div>
                             <div class="image-date">${image.date}</div>
                             <div class="action-buttons">
-                                <button onclick="downloadImage('${image.url}', '${image.title}')" class="btn btn-download">다운로드</button>
-                                <button onclick="deleteImage(${image.id})" class="btn btn-delete">삭제</button>
+                                <button onclick="downloadImage('${image.url}', '${image.title}')" class="btn-download">다운로드</button>
+                                <button onclick="deleteImage(${image.id})" class="btn-delete">삭제</button>
                             </div>
                         </div>
                     </div>
