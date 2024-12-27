@@ -14,16 +14,15 @@
         }
         .upload-container {
             border: 2px dashed #ccc;
-            padding: 20px;
+            padding: 30px;
             text-align: center;
             margin-bottom: 30px;
             border-radius: 8px;
-            transition: all 0.3s ease;
-            position: relative;
         }
-        .upload-container.dragover {
-            background-color: #e9ecef;
-            border-color: #007bff;
+        .upload-title {
+            margin: 0 0 20px 0;
+            color: #333;
+            font-size: 24px;
         }
         .upload-text {
             color: #666;
@@ -33,15 +32,16 @@
             margin-bottom: 10px;
         }
         .image-list {
-            width: 100%;
-            border-collapse: collapse;
             margin-top: 30px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
         }
         .image-item {
             display: flex;
             align-items: center;
             padding: 15px;
             border-bottom: 1px solid #eee;
+            background-color: #f8f9fa;
         }
         .image-item:hover {
             background-color: #f8f9fa;
@@ -91,17 +91,27 @@
         .btn:hover {
             opacity: 0.9;
         }
+        .btn-primary {
+            background-color: #4CAF50;
+            color: white;
+            padding: 8px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
     </style>
 </head>
 <body>
     <h1>이미지 업로드 10</h1>
-    <div class="upload-container" id="drop-zone">
+    <div class="upload-container">
+        <h1 class="upload-title">파일 업로드</h1>
         <div class="upload-text">
             이미지를 여기에 드래그하거나 파일 선택 버튼을 클릭하세요
         </div>
         <form id="upload-form">
             <input type="file" accept="image/*">
-            <button type="submit" class="btn btn-primary">업로드</button>
+            <button type="submit" class="btn-primary">업로드</button>
         </form>
     </div>
     <div id="image-list" class="image-list"></div>
@@ -136,7 +146,7 @@
                 .then(blob => {
                     // 파일 확장자 추출
                     const extension = url.split('.').pop().split('?')[0];
-                    // 파일명 생성 (원본 파일명 + 확장자)
+                    // 파일명 생성 (원본 파일명 + 확���자)
                     const fullFilename = `${filename}.${extension}`;
                     
                     // Blob URL 생성
@@ -194,7 +204,7 @@
 
             // 파일 업로드 함수
             async function uploadFile(file) {
-                if (isUploading) return; // 이미 업로드 중이면 리턴
+                if (isUploading) return; // 이미 업로드 ��이면 리턴
                 
                 try {
                     isUploading = true; // 업로드 시작
