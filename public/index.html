@@ -144,50 +144,106 @@
 
     <script>
         let imageList = [];
+        const dropZone = document.getElementById('drop-zone');
+        
+        // 드래그 앤 드롭 이벤트
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
 
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].type.startsWith('image/')) {
+                await uploadFile(files[0]);
+            } else {
+                alert('이미지 파일만 업로드 가능합니다.');
+            }
+        });
+
+        // 파일 업로드 함수
+        async function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) throw new Error('업로드 실패');
+                
+                const data = await response.json();
+                if (data.url) {
+                    addImageToList(data.url, file.name);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('업로드 중 오류가 발생했습니다: ' + error.message);
+            }
+        }
+
+        // 이미지 리스트에 추가
         function addImageToList(url, fileName) {
             const now = new Date();
             const imageInfo = {
                 url: url,
                 date: now.toLocaleString('ko-KR'),
                 title: fileName || `이미지 ${imageList.length + 1}`,
-                id: Date.now() // 고유 ID 추가
+                id: Date.now()
             };
             imageList.unshift(imageInfo);
             updateImageList();
             localStorage.setItem('uploadedImages', JSON.stringify(imageList));
         }
 
-        function deleteImage(id) {
-            if (confirm('이미지를 삭제하시겠습니까?')) {
-                imageList = imageList.filter(img => img.id !== id);
-                updateImageList();
-                localStorage.setItem('uploadedImages', JSON.stringify(imageList));
+        // form submit 이벤트
+        document.getElementById('upload-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fileInput = document.querySelector('input[type="file"]');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('파일을 선택해주세요.');
+                return;
             }
-        }
 
+            await uploadFile(file);
+            fileInput.value = '';
+        });
+
+        // 페이지 로드 시 저장된 이미지 불러오기
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedImages = localStorage.getItem('uploadedImages');
+            if (savedImages) {
+                imageList = JSON.parse(savedImages);
+                updateImageList();
+            }
+        });
+
+        // 다운로드 함수
         function downloadImage(url, filename) {
             fetch(url)
                 .then(response => response.blob())
                 .then(blob => {
-                    // 파일 확자 추출
                     const extension = url.split('.').pop().split('?')[0];
-                    // 일명 생성 (원본 파일명 + 확자)
                     const fullFilename = `${filename}.${extension}`;
-                    
-                    // Blob URL 생성
                     const blobUrl = window.URL.createObjectURL(blob);
-                    
-                    // 다운로드 링크 생성
                     const a = document.createElement('a');
                     a.href = blobUrl;
                     a.download = fullFilename;
-                    
-                    // 링크를 body에 추가하고 클릭
                     document.body.appendChild(a);
                     a.click();
-                    
-                    // cleanup
                     window.URL.revokeObjectURL(blobUrl);
                     document.body.removeChild(a);
                 })
@@ -195,6 +251,15 @@
                     console.error('다운로드 중 오류 발생:', error);
                     alert('다운로드 중 오류가 발생했습니다.');
                 });
+        }
+
+        // 삭제 함수
+        function deleteImage(id) {
+            if (confirm('이미지를 삭제하시겠습니까?')) {
+                imageList = imageList.filter(img => img.id !== id);
+                updateImageList();
+                localStorage.setItem('uploadedImages', JSON.stringify(imageList));
+            }
         }
 
         function updateImageList() {
@@ -215,88 +280,6 @@
                 `).join('');
             }
         }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const savedImages = localStorage.getItem('uploadedImages');
-            if (savedImages) {
-                imageList = JSON.parse(savedImages);
-                updateImageList();
-            }
-
-            const dropZone = document.getElementById('drop-zone');
-            const fileInput = document.querySelector('input[type="file"]');
-            const form = document.getElementById('upload-form');
-            let isUploading = false; // 업로드 중복 방지 플래그
-
-            // 파일 업로드 함수
-            async function uploadFile(file) {
-                if (isUploading) return; // 이미 업로드 이면 리턴
-                
-                try {
-                    isUploading = true; // 업로드 시작
-                    const formData = new FormData();
-                    formData.append('file', file);
-                    
-                    const response = await fetch('/api/upload', {
-                        method: 'POST',
-                        body: formData
-                    });
-                    
-                    if (!response.ok) throw new Error('업로드 실패');
-                    
-                    const data = await response.json();
-                    if (data.url) {
-                        addImageToList(data.url, file.name);
-                        fileInput.value = '';
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    alert('업로드 중 오류가 발생했습니다: ' + error.message);
-                } finally {
-                    isUploading = false; // 업로드 완료
-                }
-            }
-
-            // 드래그 앤 드롭 이벤트
-            dropZone.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                dropZone.classList.add('dragover');
-            });
-
-            dropZone.addEventListener('dragleave', (e) => {
-                e.preventDefault();
-                dropZone.classList.remove('dragover');
-            });
-
-            dropZone.addEventListener('drop', async (e) => {
-                e.preventDefault();
-                e.stopPropagation(); // 이벤트 전파 중지
-                dropZone.classList.remove('dragover');
-                
-                const files = e.dataTransfer.files;
-                if (files.length > 0 && files[0].type.startsWith('image/')) {
-                    await uploadFile(files[0]); // await 추가
-                } else {
-                    alert('이미지 파일만 업로드 가능합니다.');
-                }
-            });
-
-            // form submit 이벤트
-            if (form) {
-                form.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    e.stopPropagation(); // 이벤트 전파 중지
-                    
-                    const file = fileInput.files[0];
-                    if (!file) {
-                        alert('파일을 선택해주세요.');
-                        return;
-                    }
-
-                    await uploadFile(file); // await 추가
-                });
-            }
-        });
     </script>
 </body>
 </html> 
